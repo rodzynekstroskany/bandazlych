@@ -49,6 +49,7 @@ section.view{display:flex;flex-direction:column;gap:36px}
 .sec{display:flex;flex-direction:column;gap:14px;min-width:0}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .hint{color:var(--muted);font-size:13px}
+#msel{background:rgba(20,20,22,.9);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font:600 13px var(--f-label);letter-spacing:.08em;text-transform:uppercase}
 
 /* hero */
 .hero{display:grid;grid-template-columns:132px 1fr;gap:24px;align-items:center}
@@ -234,9 +235,10 @@ const PEOPLE={
  d:{key:'d',name:'Daniel',full:'Daniel Losinski',img:IMG.d}};
 const ORDER=['p','k','d'];
 const DISC=['PoolSTA','DrySTA','DYN','DeepSpot','OpenWater','Comp'];
-const EXTRA=['Swim','Gym'];
+const EXTRA=['Swim','Gym','Cardio'];
+let mSel=+SNAP.slice(5,7);const inM=(d,m)=>!m||+d.slice(5,7)===m;
 const SHORT={PoolSTA:'STA',DrySTA:'dry STA',DYN:'DYN',DeepSpot:'DeepSpot',OpenWater:'Open water',Comp:'Comp'};
-const DISC_LABEL={PoolSTA:'Pool STA',DrySTA:'Dry STA',DYN:'Dynamic',DeepSpot:'DeepSpot',OpenWater:'Open water',Comp:'Competition',Swim:'Swim',Gym:'Gym'};
+const DISC_LABEL={PoolSTA:'Pool STA',DrySTA:'Dry STA',DYN:'Dynamic',DeepSpot:'DeepSpot',OpenWater:'Open water',Comp:'Competition',Swim:'Swim',Gym:'Gym',Cardio:'Cardio'};
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -415,9 +417,12 @@ function monthChart(whos){
   }
   return s+'</svg>';
 }
+function monthSel(){return `<select id="msel" aria-label="Month">${MONTHS.slice(0,+SNAP.slice(5,7)).map((n,i)=>`<option value="${i+1}"${i+1===mSel?' selected':''}>${n}</option>`).join('')}</select>`}
+function mixMonth(){return ORDER.map(w=>`<div class="panel"><h3 style="margin-bottom:12px;color:var(--c)" class="${w}">${PEOPLE[w].name}</h3>${discBars(w,mSel)}</div>`).join('')}
 function legend(whos){return `<div class="legend">${whos.map(w=>`<span class="${w}"><i></i>${PEOPLE[w].name}</span>`).join('')}</div>`}
-function exCounts(w){const c={Swim:0,Gym:0};(D.extra||[]).forEach(e=>{if(e.d<=SNAP&&(!w||e.w===w))c[e.x]++});return c}
-function discBars(w){const c=Object.assign(discCounts(w),exCounts(w));const mx=Math.max(1,...Object.values(c));
+function exCounts(w,m){const c={Swim:0,Gym:0,Cardio:0};(D.extra||[]).forEach(e=>{if(e.d<=SNAP&&(!w||e.w===w)&&inM(e.d,m))c[e.x]++});return c}
+function discCountsM(w,m){const c={};DISC.forEach(x=>c[x]=0);byWho(w).filter(s=>inM(s.d,m)).forEach(s=>s.g.forEach(g=>{if(c[g]!=null)c[g]++}));return c}
+function discBars(w,m){const c=Object.assign(discCountsM(w,m),exCounts(w,m));const mx=Math.max(1,...Object.values(c));
   return `<div class="disc ${w}">${DISC.concat(EXTRA).map(k=>`<div class="drow"><span>${DISC_LABEL[k]}</span><div class="dbar"><i style="width:${100*c[k]/mx}%"></i></div><b class="num">${c[k]}</b></div>`).join('')}</div>`}
 const hmKey=`<div class="key"><span><i style="background:var(--muted)"></i>Apnea session</span><span><i style="border:1.5px solid var(--muted)"></i>Rest day or future plan</span><span><i style="background:var(--surface2)"></i>Nothing logged</span></div>`;
 
@@ -480,8 +485,10 @@ function teamView(){
   <div class="sec"><div class="sec-head"><h2>Next 7 days</h2><span class="hint">Planned sessions from the sheet. Buddy match = same start time.</span></div><div class="panel">${agenda(null,7)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Consistency</h2><span class="hint">Apnea only: static, dynamic, depth. Swim, gym and technique days are left out.</span></div><div class="panel">${ORDER.map(w=>`<div class="hm-row ${w}"><div class="hm-name"><i></i>${PEOPLE[w].name}</div><div class="scroll">${heatmap(w)}</div></div>`).join('')}${hmKey}</div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2>${legend(ORDER)}</div><div class="panel scroll">${monthChart(ORDER)}</div></div>
-  <div class="sec"><div class="sec-head"><h2>Training mix</h2><span class="hint">Apnea sessions by type, as coloured in the sheet. Swim and Gym are counted on top and are not part of consistency.</span></div>
+  <div class="sec"><div class="sec-head"><h2>Training mix - year</h2><span class="hint">All of 2026 so far. Apnea sessions by type, as coloured in the sheet. Swim, Gym and Cardio are counted on top and are not part of consistency.</span></div>
    <div class="cols">${ORDER.map(w=>`<div class="panel"><h3 style="margin-bottom:12px;color:var(--c)" class="${w}">${PEOPLE[w].name}</h3>${discBars(w)}</div>`).join('')}</div></div>
+  <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div>
+   <div class="cols" id="mixm">${mixMonth()}</div></div>
   <div class="sec"><div class="sec-head"><h2>Personal bests</h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Competition and training PBs flagged in the sheet</span><button class="nav todaybtn" id="pbsort">${pbDir==='asc'?'Oldest first':'Latest first'}</button></div></div><div class="panel" id="pbtl">${pbTimeline()}</div></div>
   <div class="sec"><div class="sec-head"><h2>Wall of fame</h2><span class="hint">2026 competition results</span></div><div class="panel">${resultsHTML(null)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Coming up</h2></div><div class="panel">${upcomingEvents()}</div></div>
@@ -497,7 +504,11 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Next 7 days</h2></div><div class="panel">${agenda(w,7)}</div></div>
   <div class="cols">
    <div class="sec"><div class="sec-head"><h2>Highlights</h2></div><div class="panel"><ul class="hl">${HIGH[w].map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div></div>
-   <div class="sec"><div class="sec-head"><h2>Training mix</h2></div><div class="panel">${discBars(w)}</div></div>
+   <div class="sec"><div class="sec-head"><h2>Training mix - year</h2></div><div class="panel">${discBars(w)}</div></div>
+  </div>
+  <div class="cols">
+   <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
+   <div class="sec"><div class="sec-head"><h2>Training mix - previous month</h2><span class="hint">${MONTHS[+SNAP.slice(5,7)-2]}</span></div><div class="panel">${discBars(w,+SNAP.slice(5,7)-1)}</div></div>
   </div>
   <div class="sec"><div class="sec-head"><h2>Consistency</h2></div><div class="panel"><div class="scroll">${heatmap(w)}</div><div style="margin-top:10px">${hmKey}</div></div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2></div><div class="panel scroll">${monthChart([w])}</div></div>
@@ -564,6 +575,7 @@ function render(){
   $('#main').innerHTML=id==='team'?teamView():id==='calendar'?calendarView():personView(w);
   if(id==='calendar'){bindCal();drawCal()}
   const sb=$('#pbsort');if(sb)sb.onclick=()=>{pbDir=pbDir==='asc'?'desc':'asc';sb.textContent=pbDir==='asc'?'Oldest first':'Latest first';$('#pbtl').innerHTML=pbTimeline()};
+  const ms=$('#msel');if(ms)ms.onchange=()=>{mSel=+ms.value;const mx=$('#mixm');if(mx)mx.innerHTML=w?discBars(w,mSel):mixMonth()};
   scrollTo(0,0);
 }
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;const id=g.dataset.go;
