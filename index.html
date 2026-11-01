@@ -327,7 +327,7 @@ function pbRow(p,showWho,cur){
   return `<div class="pbrow ${p.w}"><div class="pbd">${fmt(p.d)}</div><div class="pbm">${showWho?`<span class="who"><i class="dot on"></i>${P.name}</span>`:''}<span class="chip ${p.t==='c'?'pbc':'pbt'}">${p.t==='c'?'Competition':'Training'}</span>${p.card?'<span class="chip red">Red card</span>':''}${cur?'<span class="badge buddy">Current</span>':''}</div><div class="pbv"><b>${esc(p.x)}</b> <span class="num">${esc(p.v)}</span>${p.n?`<em>${esc(p.n)}</em>`:''}</div></div>`;
 }
 function currentSet(list){const seen=new Set(),cur=new Set();list.slice().sort((a,b)=>b.d.localeCompare(a.d)||0).forEach(p=>{const k=p.w+p.t+p.x;if(!seen.has(k)){seen.add(k);cur.add(p)}});return cur}
-let pbDir='asc';
+let pbDir='desc';
 function pbTimeline(){
   const cur=currentSet(PBS);
   const list=PBS.slice().sort((a,b)=>pbDir==='asc'?a.d.localeCompare(b.d):b.d.localeCompare(a.d));
@@ -521,11 +521,18 @@ function personView(w){
 /* calendar */
 let cal={m:9,sel:SNAP};
 {const nx=[...new Set(D.plans.map(p=>p.d).filter(d=>d>=SNAP))].sort()[0];if(nx){cal.sel=nx;cal.m=+nx.slice(5,7)-1}}
+const COMP27=[['15 Jan','Fri','DeepSpot Liga'],['30–31 Jan','Sat–Sun','Suunto Games, Wrocław'],['18–20 Feb','Thu–Sat','DeepSpot Challenge'],['12–14 Mar','Fri–Sun','CMAS World Cup / Polish Nationals'],['Jun','','AIDA World Championships, Depth, Pangalao'],['Jul','','AIDA Asia Cup, Pangalao']];
+function upcomingComps(){
+  const g=[];D.events.filter(e=>e.d>SNAP&&/zawody|comp/i.test(e.t)).forEach(e=>{const n=e.t.replace(/^Zawody:\s*/,'').replace(/^\S+ ZŁYCH\s*/,'banda ZŁYCH ');const l=g[g.length-1];if(l&&l.n===n&&addD(l.b,1)===e.d)l.b=e.d;else g.push({a:e.d,b:e.d,n})});
+  const row=(d,s,n)=>`<div class="arow"><div class="adate">${d}<small>${s}</small></div><div class="aitems"><div class="aline"><span>${esc(n)}</span></div></div></div>`;
+  const r26=g.map(x=>row(x.a===x.b?fmt(x.a):fmt(x.a,{day:'numeric',month:'short'})+' – '+fmt(x.b,{day:'numeric',month:'short'}),fmt(x.a,{weekday:'short'}),x.n)).join('');
+  return `<div class="sec"><div class="sec-head"><h2>Upcoming competitions</h2></div><div class="panel"><h3 style="margin-bottom:8px">2026</h3><div class="agenda">${r26||'<p class="empty">Nothing scheduled yet.</p>'}</div><h3 style="margin:18px 0 8px">2027</h3><div class="agenda">${COMP27.map(c=>row(c[0],c[1],c[2])).join('')}</div></div></div>`;
+}
 function calendarView(){
   return `<section class="view" id="v-calendar"><div class="sec"><div class="calhead"><button class="nav" id="prev" aria-label="Previous month">‹</button><h2 id="calt"></h2><button class="nav" id="next" aria-label="Next month">›</button><button class="nav todaybtn" id="tod">Today</button><div class="legend" style="margin-left:auto">${ORDER.map(w=>`<span class="${w}"><i></i>${PEOPLE[w].name}</span>`).join('')}</div></div>
   <div class="grid" id="grid"></div>
   <div class="key"><span><i class="dot on" style="border-radius:50%;width:9px;height:9px;background:var(--muted)"></i>Logged</span><span><i style="border-radius:50%;width:9px;height:9px;border:2px solid var(--muted)"></i>Planned</span><span><i style="background:var(--red)"></i>Team event</span></div></div>
-  <div class="sec"><div class="panel daypanel" id="day"></div></div></section>`;
+  <div class="sec"><div class="panel daypanel" id="day"></div></div>${upcomingComps()}</section>`;
 }
 function drawCal(){
   $('#calt').textContent=MONTHS[cal.m]+' 2026';
