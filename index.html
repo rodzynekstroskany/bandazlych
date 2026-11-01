@@ -49,6 +49,10 @@ section.view{display:flex;flex-direction:column;gap:36px}
 .sec{display:flex;flex-direction:column;gap:14px;min-width:0}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .hint{color:var(--muted);font-size:13px}
+.dpbh,.dpbr{display:grid;grid-template-columns:70px 1fr 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px solid rgba(255,255,255,.12)}
+.dpbh{border-top:0;padding-top:0;font:600 11px/1 var(--f-label);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.dpbr .dn{font:600 15px/1.2 var(--f-label);letter-spacing:.1em;color:var(--c)}
+.dpbr b{display:block;font-size:20px;line-height:1.1}.dpbr small{display:block;margin-top:3px;font-size:12px;line-height:1.3;color:var(--muted)}
 #msel{background:rgba(20,20,22,.9);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font:600 13px var(--f-label);letter-spacing:.08em;text-transform:uppercase}
 
 /* hero */
@@ -335,6 +339,36 @@ function pbTimeline(){
   list.forEach(p=>{const m=MONTHS[+p.d.slice(5,7)-1];if(m!==lastM){h+=`<h3 class="pbmonth">${m}</h3>`;lastM=m}h+=pbRow(p,true,cur.has(p))});
   return `<div class="pbs">${h}</div>`;
 }
+
+/* Best per discipline: t = training, c = competition. From PBs flagged in the sheet and competition results. */
+const DPB={
+ p:{STA:{c:['5:03','DeepSpot Challenge, 2nd place']},
+    DNF:{c:['225 m','CMAS Quest, 1st place']},
+    DYN:{c:['226.5 m','Bi-fins, MPL Poland']},
+    DYNB:{c:['236 m','MPL Poland; 259 m at freeWRO was a red card']},
+    CNF:{c:['93 m','CMAS Caribbean Cup, red card; 91 m, gold, CMAS Worlds 2025']},
+    FIM:{t:['120 m','Roatan, no warm-up'],c:['118 m','Larnaca, white card']},
+    CWTB:{c:['111 m','CMAS Worlds, 2nd place']},
+    CWT:{}},
+ k:{STA:{t:['4:36','Pool, February'],c:['4:13','CMAS Quest, Polna 25']},
+    DNF:{},DYN:{},
+    DYNB:{t:['111 m','Quoted as PB in an April log'],c:['111 m','MPL Poland']},
+    CNF:{},FIM:{},CWTB:{},CWT:{}},
+ d:{STA:{c:['7:18','Swedish Nationals, 2nd place']},
+    DNF:{c:['156 m','Swedish Nationals']},
+    DYN:{},
+    DYNB:{c:['206 m','Swedish Nationals, 2nd place']},
+    CNF:{t:['59.7 m','Open water'],c:['62 m','Freedom Depth Games, white card']},
+    FIM:{t:['81 m','Open water'],c:['80 m','Freedom Depth Games, white card']},
+    CWTB:{c:['75 m','AIDA Worlds, white card']},
+    CWT:{c:['80 m','AIDA Worlds']}}
+};
+function dpbTable(w,list,title){
+  const cell=v=>v?`<b class="num">${v[0]}</b><small>${esc(v[1])}</small>`:'<span class="empty">–</span>';
+  return `<div class="panel dpb"><h3 style="margin-bottom:12px">${title}</h3><div class="dpbh"><span></span><span>Training</span><span>Competition</span></div>${list.map(k=>{const r=DPB[w][k]||{};return `<div class="dpbr"><span class="dn">${k}</span><div>${cell(r.t)}</div><div>${cell(r.c)}</div></div>`}).join('')}</div>`;
+}
+function dpbSection(w){return `<div class="sec"><div class="sec-head"><h2>PB pool / competition results</h2><span class="hint">Best per discipline from the sheet's PB flags and competition results. A dash means nothing flagged yet.</span></div>${dpbTable(w,['STA','DNF','DYN','DYNB'],'Pool')}</div>
+  <div class="sec"><div class="sec-head"><h2>PB depth / competition results</h2></div>${dpbTable(w,['CNF','FIM','CWTB','CWT'],'Depth')}</div>`}
 function pbSection(w){
   const mine=PBS.filter(p=>p.w===w);const cur=currentSet(mine);
   const col=(t,title)=>{const l=mine.filter(p=>p.t===t).sort((a,b)=>b.d.localeCompare(a.d));
@@ -507,12 +541,13 @@ function personView(w){
    <div class="sec"><div class="sec-head"><h2>Training mix - year</h2></div><div class="panel">${discBars(w)}</div></div>
   </div>
   <div class="cols">
-   <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - previous month</h2><span class="hint">${MONTHS[+SNAP.slice(5,7)-2]}</span></div><div class="panel">${discBars(w,+SNAP.slice(5,7)-1)}</div></div>
+   <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
   </div>
   <div class="sec"><div class="sec-head"><h2>Consistency</h2></div><div class="panel"><div class="scroll">${heatmap(w)}</div><div style="margin-top:10px">${hmKey}</div></div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2></div><div class="panel scroll">${monthChart([w])}</div></div>
   <div class="sec"><div class="sec-head"><h2>Personal bests</h2><span class="hint">Flagged as PB in the sheet. Official all-time PBs are not included yet.</span></div>${pbSection(w)}</div>
+  ${dpbSection(w)}
   <div class="sec"><div class="sec-head"><h2>Competitions</h2></div><div class="panel">${resultsHTML(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
   </section>`;
