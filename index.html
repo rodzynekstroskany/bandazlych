@@ -53,8 +53,9 @@ section.view{display:flex;flex-direction:column;gap:36px}
 .mleg{flex-wrap:wrap;gap:6px 16px;margin-top:10px}.mleg span{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-label);letter-spacing:.08em;text-transform:uppercase}.mleg i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .rkt{width:100%;border-collapse:collapse;table-layout:fixed;font-family:var(--f-label)}
 .rkt th,.rkt td{height:52px;padding:0 4px;text-align:center;vertical-align:middle;border-top:1px solid rgba(255,255,255,.1)}
+.rkt thead th:first-child{width:128px}
 .rkt thead th{height:34px;border-top:0;font:600 12px/1 var(--f-label);letter-spacing:.14em;color:var(--c)}
-.rkt tbody th{width:104px;text-align:left;font:600 12px/1.2 var(--f-label);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.rkt tbody th{width:128px;padding-left:4px;text-align:left;font:600 12px/1.2 var(--f-label);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
 .rkt td b{display:block;font-size:19px;line-height:1.1}.rkt td b.dim{color:var(--muted)}
 .rkt td small{display:block;margin-top:3px;font-size:11px;line-height:1.1;color:var(--muted);white-space:nowrap}
 .dpbh,.dpbr{display:grid;grid-template-columns:70px 1fr 1fr;gap:12px;align-items:start;padding:10px 0;border-top:1px solid rgba(255,255,255,.12)}
@@ -384,22 +385,28 @@ const RK={
   ['🌍 2026',[[4,'118 m'],[11,'110 m'],[5,'111 m'],null,null,null,[27,'236 m'],[3,'225 m']]],
   ['🌍 All time',[[9,'118 m'],[42,'110 m'],[14,'111 m'],[5,'91 m'],[49,'8:32'],null,[50,'236 m'],[8,'225 m']]],
   ['🇵🇱 2026',[[1,'118 m'],[1,'110 m'],[1,'111 m'],null,null,null,[4,'236 m'],[2,'225 m']]],
-  ['🇵🇱 All time',[[2,'118 m'],[2,'110 m'],[2,'111 m'],[2,'91 m'],[4,'8:42'],null,[6,'236 m'],[2,'225.5 m']]]]},
+  ['🇵🇱 All time',[[2,'118 m'],[2,'110 m'],[2,'111 m'],[2,'91 m'],[4,'8:42'],null,[6,'236 m'],[2,'225.5 m']]],
+  ['🌍 2025',[[11,'111 m'],null,[26,'95 m'],[5,'91 m'],[15,'8:32'],null,null,[3,'225.5 m']]],
+  ['🇵🇱 2025',[[2,'111 m'],null,null,[2,'91 m'],[2,'8:32'],null,null,[2,'225.5 m']]]]},
  d:{cols:['FIM','CWT','CWTB','CNF','STA','DYN','DYNB','DNF'],rows:[
   ['🌍 2026',[[101,'80 m'],[93,'80 m'],[101,'75 m'],[53,'62 m'],[62,'7:18'],[117,'199 m'],[74,'206 m'],[74,'156 m']]],
   ['🌍 All time',[[293,'80 m'],[332,'80 m'],[279,'75 m'],[182,'62 m'],[67,'8:12'],[95,'235 m'],[100,'217 m'],[79,'181 m']]],
   ['🇸🇪 2026',[[3,'80 m'],[4,'80 m'],[3,'75 m'],[3,'62 m'],[4,'7:18'],[5,'199 m'],[2,'206 m'],[4,'156 m']]],
-  ['🇸🇪 All time',[[6,'80 m'],[10,'80 m'],[3,'75 m'],[9,'62 m'],[5,'8:12'],[6,'235.5 m'],[4,'217.5 m'],[5,'181 m']]]]},
+  ['🇸🇪 All time',[[6,'80 m'],[10,'80 m'],[3,'75 m'],[9,'62 m'],[5,'8:12'],[6,'235.5 m'],[4,'217.5 m'],[5,'181 m']]],
+  ['🌍 2025',[null,null,null,null,[22,'8:12'],[36,'235.5 m'],[47,'217.5 m'],[30,'181 m']]],
+  ['🇸🇪 2025',[null,null,null,null,[2,'8:12'],[1,'235.5 m'],[1,'217.5 m'],[2,'181 m']]]]},
  k:{cols:['STA','DYN','DYNB','DNF'],rows:[
   ['🌍 2026',[[375,'4:13'],[501,'79 m'],[429,'111 m'],null]],
   ['🌍 All time',[[1816,'4:13'],[1469,'101 m'],[1042,'111 m'],[1341,'75 m']]],
   ['🇵🇱 2026',[[16,'4:13'],[16,'79 m'],[16,'111 m'],null]],
-  ['🇵🇱 All time',[[40,'4:13'],[38,'101 m'],[26,'111 m'],[46,'75 m']]]]}
+  ['🇵🇱 All time',[[40,'4:13'],[38,'101 m'],[26,'111 m'],[46,'75 m']]],
+  ['🌍 2025',[[886,'2:24'],[397,'101 m'],[533,'101.5 m'],[542,'57 m']]],
+  ['🇵🇱 2025',[[17,'2:24'],[10,'101 m'],[19,'101.5 m'],[16,'57 m']]]]}
 };
 function rankSection(w){const R=RK[w];if(!R)return '';
   const n=R.cols.length;
   const cell=v=>v?`<td><b class="num">${v[0]}.</b><small>${v[1]}</small></td>`:'<td><b class="num dim">–</b><small>&nbsp;</small></td>';
-  return `<div class="sec rk"><div class="sec-head"><h2>Rankings</h2><span class="hint">Position and best result per discipline on freediveranking.com, as of 4 Nov 2026</span></div><div class="panel scroll"><table class="rkt" style="min-width:${n>4?640:420}px"><thead><tr><th></th>${R.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${R.rows.map(r=>`<tr><th scope="row">${r[0]}</th>${r[1].map(cell).join('')}</tr>`).join('')}</tbody></table></div></div>`}
+  return `<div class="sec rk"><div class="sec-head"><h2>Rankings</h2><span class="hint">Position and best result per discipline on freediveranking.com, as of 4 Nov 2026</span></div><div class="panel scroll"><table class="rkt" style="min-width:${n>4?700:480}px"><thead><tr><th></th>${R.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${R.rows.map(r=>`<tr><th scope="row">${r[0]}</th>${r[1].map(cell).join('')}</tr>`).join('')}</tbody></table></div></div>`}
 function pbSection(w){
   const mine=PBS.filter(p=>p.w===w);const cur=currentSet(mine);
   const col=(t,title)=>{const l=mine.filter(p=>p.t===t).sort((a,b)=>b.d.localeCompare(a.d));
@@ -429,6 +436,7 @@ function discCounts(w){const c={};DISC.forEach(x=>c[x]=0);byWho(w).forEach(s=>s.
 function streak(w){const set=new Set(byWho(w).map(s=>s.d));let best=0,cur=0;for(let d='2026-01-01';d<=SNAP;d=addD(d,1)){if(set.has(d)){cur++;best=Math.max(best,cur)}else cur=0}return best}
 function hitRate(w){const a=byWho(w);return a.length?Math.round(100*a.filter(s=>s.t).length/a.length):null}
 function hitRateOld(w){const days=[...new Set(D.plans.filter(p=>p.w===w&&p.a&&p.d<=SNAP).map(p=>p.d))];if(!days.length)return null;const hit=days.filter(d=>trained.some(s=>s.w===w&&s.d===d)).length;return Math.round(100*hit/days.length)}
+function last7(w){const from=addD(SNAP,-6);return byWho(w).filter(s=>s.d>=from).length}
 function last30(w){const from=addD(SNAP,-29);return byWho(w).filter(s=>s.d>=from).length}
 function lastSession(w){const a=byWho(w);return a.length?a[a.length-1].d:null}
 const MEDALS_PRE={p:1,k:0,d:0}; /* medals before 2026 that I know of: Piotr, CMAS Worlds 2025 CNF gold */
@@ -567,7 +575,7 @@ function sessionsHTML(w,n=10){
 function peopleCards(){
   return `<div class="people">${ORDER.map(w=>{const P=PEOPLE[w];const hr=hitRate(w);const ls=lastSession(w);
    return `<button class="pcard ${w}" data-go="${P.name.toLowerCase()}"><div class="top"><img class="avatar" src="${P.img}" alt="${P.name}"><div><div class="pname">${P.name}</div><div class="psub">Last session ${ls?fmt(ls):'none'}</div></div></div>
-   <div class="mini"><div><b class="num">${byWho(w).length}</b><span>Sessions 2026</span></div><div><b class="num">${last30(w)}</b><span>Last 30 days</span></div><div><b class="num">${hr==null?'–':hr+'%'}</b><span>Logged</span></div></div></button>`}).join('')}</div>`;
+   <div class="mini"><div><b class="num">${byWho(w).length}</b><span>Sessions 2026</span></div><div><b class="num">${last30(w)}</b><span>Last 30 days</span></div><div><b class="num">${last7(w)}</b><span>Last 7 days</span></div></div></button>`}).join('')}</div>`;
 }
 function teamView(){
   const m=medals();const total=trained.length;
