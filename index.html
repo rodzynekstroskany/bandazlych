@@ -52,6 +52,15 @@ section.view{display:flex;flex-direction:column;gap:36px}
 .sec{display:flex;flex-direction:column;gap:14px;min-width:0}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .hint{color:var(--muted);font-size:13px}
+.fdt{width:100%;border-collapse:collapse;font-family:var(--f-label)}
+.fdt th,.fdt td{padding:9px 8px;text-align:left;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle}
+.fdt thead th{border-top:0;font:600 11px/1 var(--f-label);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.fdt tbody th{font:600 13px var(--f-label);letter-spacing:.08em;white-space:nowrap}
+.fdt td b{font-size:18px}.fdt a{color:#fff;text-decoration:underline;text-decoration-color:rgba(255,255,255,.35)}
+.fdt.board td,.fdt.board th{text-align:center}.fdt.board td.lead{background:rgba(212,160,44,.16);box-shadow:inset 0 0 0 1px rgba(212,160,44,.6)}
+.cdot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.4)}
+.fdr-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.fdsel{background:rgba(20,20,22,.9);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font:600 13px var(--f-label)}
 .seg{fill:#fff;font:600 11px var(--f-label);paint-order:stroke;stroke:rgba(0,0,0,.6);stroke-width:2.4px;stroke-linejoin:round}.segt{fill:#fff;font:600 12px var(--f-label)}
 .mleg{flex-wrap:wrap;gap:6px 16px;margin-top:10px}.mleg span{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-label);letter-spacing:.08em;text-transform:uppercase}.mleg i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .rkt{width:100%;border-collapse:collapse;table-layout:fixed;font-family:var(--f-label)}
@@ -524,6 +533,52 @@ function monthStack(w){
   }
   return s+'</svg><div class="legend mleg">'+MSTACK.map(k=>`<span><i style="background:${MCOL[k]}"></i>${MLAB[k]}</span>`).join('')+'</div>';
 }
+
+/* ---- Live official data from freediveranking.com/bandazlych (JSON: data[] with personalBests and years[].results[]) ---- */
+const FDR_URL='https://freediveranking.com/bandazlych';
+const FDR_NAME={p:'piotr kubiak',k:'katarzyna gast',d:'daniel losinski'};
+const FDR_DISC=['STA','DYN','DYNB','DNF','CNF','FIM','CWT','CWTB'];
+let FDR=null,FDR_ERR=null,FDR_AT=null;
+const nrm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l').trim();
+function fdrAthlete(w){return FDR&&(FDR.data||[]).find(a=>nrm(a.name)===FDR_NAME[w])}
+function rpNum(v){if(v==null)return null;const s=String(v).trim();if(s.includes(':')){const p=s.split(':').map(Number);return p.length===2?p[0]*60+p[1]:null}const n=parseFloat(s.replace(',','.'));return isNaN(n)?null:n}
+function rpFmt(v,disc){if(v==null||v==='')return '–';const s=String(v).trim();if(s.includes(':')){const p=s.split(':');return (+p[0])+':'+p[1].padStart(2,'0')}return s.replace(/\s*m$/i,'')+' m'}
+const fdrDate=d=>d?new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+function fdrNote(){return FDR?`Live from freediveranking.com, loaded ${FDR_AT.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} ${FDR_AT.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`:(FDR_ERR?'Could not reach freediveranking.com from this browser':'Loading…')}
+function fdrUnavailable(){return `<p class="empty">Live data from freediveranking.com is not available right now${FDR_ERR?' ('+esc(FDR_ERR)+')':''}. It loads each time you open the page.</p>`}
+function fdrRecords(w){
+  if(!FDR)return FDR_ERR?fdrUnavailable():'<p class="empty">Loading…</p>';
+  const a=fdrAthlete(w);if(!a)return '<p class="empty">Athlete not found in the feed.</p>';
+  const pb=a.personalBests||{};const keys=FDR_DISC.filter(k=>pb[k]).concat(Object.keys(pb).filter(k=>!FDR_DISC.includes(k)));
+  if(!keys.length)return '<p class="empty">No records yet.</p>';
+  return `<table class="fdt"><thead><tr><th>Discipline</th><th>Record</th><th>Event</th><th>Date</th></tr></thead><tbody>${keys.map(k=>{const r=pb[k];return `<tr><th scope="row">${esc(k)}</th><td><b class="num">${esc(rpFmt(r.rp,k))}</b></td><td>${r.eventLink?`<a href="${esc(r.eventLink)}" target="_blank" rel="noopener">${esc(r.event||'')}</a>`:esc(r.event||'')}</td><td>${fdrDate(r.date)}</td></tr>`}).join('')}</tbody></table>`;
+}
+const fdrYear={};
+function fdrResults(w){
+  if(!FDR)return FDR_ERR?fdrUnavailable():'<p class="empty">Loading…</p>';
+  const a=fdrAthlete(w);if(!a)return '<p class="empty">Athlete not found in the feed.</p>';
+  const ys=(a.years||[]).filter(y=>(y.results||[]).length).sort((x,y)=>y.year-x.year);
+  if(!ys.length)return '<p class="empty">No results yet.</p>';
+  const cur=fdrYear[w]&&ys.find(y=>y.year==fdrYear[w])?+fdrYear[w]:ys[0].year;
+  const y=ys.find(y=>y.year===cur);const rs=y.results.slice().sort((p,q)=>String(q.date).localeCompare(String(p.date)));
+  const cd={WHITE:'#fff',RED:'#e5383b',YELLOW:'#e3b341'};
+  const st=a.stats||{},cs=st.cards||{};
+  return `<div class="fdr-top"><select class="fdsel" data-w="${w}" aria-label="Year">${ys.map(v=>`<option value="${v.year}"${v.year===cur?' selected':''}>${v.year} (${v.results.length})</option>`).join('')}</select><span class="hint">${st.totalResults||''} official results in total${cs.WHITE!=null?` · white ${cs.WHITE||0}, yellow ${cs.YELLOW||0}, red ${cs.RED||0}`:''}</span></div>
+  <div class="scroll"><table class="fdt"><thead><tr><th>Date</th><th>Event</th><th>Disc.</th><th>Result</th><th>Card</th></tr></thead><tbody>${rs.map(r=>`<tr><td>${fdrDate(r.date)}</td><td>${r.eventLink?`<a href="${esc(r.eventLink)}" target="_blank" rel="noopener">${esc(r.event||'')}</a>`:esc(r.event||'')}</td><td>${esc(r.discipline||'')}</td><td><b class="num">${esc(rpFmt(r.rp,r.discipline))}</b></td><td><span class="cdot" style="background:${cd[r.card]||'#888'}" title="${esc(r.card||'')}"></span></td></tr>`).join('')}</tbody></table></div>`;
+}
+function fdrBoard(){
+  if(!FDR)return FDR_ERR?fdrUnavailable():'<p class="empty">Loading…</p>';
+  const A=ORDER.map(w=>fdrAthlete(w));
+  const rows=FDR_DISC.map(k=>{const vals=ORDER.map((w,i)=>{const r=A[i]&&A[i].personalBests&&A[i].personalBests[k];return r?{n:rpNum(r.rp),t:rpFmt(r.rp,k)}:null});
+    const best=Math.max(...vals.map(v=>v&&v.n!=null?v.n:-1));return {k,vals,best}}).filter(r=>r.vals.some(Boolean));
+  return `<div class="scroll"><table class="fdt board"><thead><tr><th>Discipline</th>${ORDER.map(w=>`<th class="${w}" style="color:var(--${w})">${PEOPLE[w].name}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${r.k}</th>${r.vals.map((v,i)=>v?`<td${v.n===r.best&&r.vals.filter(Boolean).length>1?' class="lead"':''}><b class="num">${esc(v.t)}</b></td>`:'<td><span class="empty">–</span></td>').join('')}</tr>`).join('')}</tbody></table></div><p class="hint" style="margin-top:8px">Best official record in the team is highlighted for each discipline.</p>`;
+}
+function fillFDR(){
+  document.querySelectorAll('[data-fdr]').forEach(el=>{const k=el.dataset.fdr,w=el.dataset.w;el.innerHTML=k==='rec'?fdrRecords(w):k==='res'?fdrResults(w):fdrBoard()});
+  document.querySelectorAll('.fdr-note').forEach(el=>el.textContent=fdrNote());
+  document.querySelectorAll('.fdsel').forEach(s=>s.onchange=()=>{fdrYear[s.dataset.w]=s.value;fillFDR()});
+}
+function loadFDR(){fetch(FDR_URL,{headers:{Accept:'application/json'}}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(j=>{FDR=j;FDR_AT=new Date();fillFDR()}).catch(e=>{FDR_ERR=(e&&e.message)||'blocked';fillFDR()})}
 function monthSel(){return `<select id="msel" aria-label="Month">${MONTHS.slice(0,+SNAP.slice(5,7)).map((n,i)=>`<option value="${i+1}"${i+1===mSel?' selected':''}>${n}</option>`).join('')}</select>`}
 function mixMonth(){return ORDER.map(w=>`<div class="panel"><h3 style="margin-bottom:12px;color:var(--c)" class="${w}">${PEOPLE[w].name}</h3>${discBars(w,mSel)}</div>`).join('')}
 function legend(whos){return `<div class="legend">${whos.map(w=>`<span class="${w}"><i></i>${PEOPLE[w].name}</span>`).join('')}</div>`}
@@ -596,6 +651,7 @@ function teamView(){
    <div class="cols">${ORDER.map(w=>`<div class="panel"><h3 style="margin-bottom:12px;color:var(--c)" class="${w}">${PEOPLE[w].name}</h3>${discBars(w)}</div>`).join('')}</div></div>
   <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div>
    <div class="cols" id="mixm">${mixMonth()}</div></div>
+  <div class="sec"><div class="sec-head"><h2>Team board - official records</h2><span class="hint fdr-note"></span></div><div class="panel" data-fdr="board"></div></div>
   <div class="sec"><div class="sec-head"><h2>Personal bests</h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Competition and training PBs flagged in the sheet</span><button class="nav todaybtn" id="pbsort">${pbDir==='asc'?'Oldest first':'Latest first'}</button></div></div><div class="panel" id="pbtl">${pbTimeline()}</div></div>
   <div class="sec"><div class="sec-head"><h2>Wall of fame</h2><span class="hint">2026 competition results</span></div><div class="panel">${resultsHTML(null)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Coming up</h2></div><div class="panel">${upcomingEvents()}</div></div>
@@ -622,6 +678,8 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2><span class="hint">Apnea sessions by type, plus swim, gym and cardio days on top</span></div><div class="panel scroll">${monthStack(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Personal bests</h2><span class="hint">Flagged as PB in the sheet. Official all-time PBs are not included yet.</span></div>${pbSection(w)}</div>
   ${dpbSection(w)}
+  <div class="sec"><div class="sec-head"><h2>Official records</h2><span class="hint fdr-note"></span></div><div class="panel" data-fdr="rec" data-w="${w}"></div></div>
+  <div class="sec"><div class="sec-head"><h2>Official results</h2><span class="hint fdr-note"></span></div><div class="panel" data-fdr="res" data-w="${w}"></div></div>
   <div class="sec"><div class="sec-head"><h2>Competitions</h2></div><div class="panel">${resultsHTML(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
   </section>`;
@@ -692,6 +750,7 @@ function render(){
   if(id==='calendar'){bindCal();drawCal()}
   const sb=$('#pbsort');if(sb)sb.onclick=()=>{pbDir=pbDir==='asc'?'desc':'asc';sb.textContent=pbDir==='asc'?'Oldest first':'Latest first';$('#pbtl').innerHTML=pbTimeline()};
   const ms=$('#msel');if(ms)ms.onchange=()=>{mSel=+ms.value;const mx=$('#mixm');if(mx)mx.innerHTML=w?discBars(w,mSel):mixMonth()};
+  fillFDR();
   scrollTo(0,0);
 }
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;const id=g.dataset.go;
@@ -700,6 +759,8 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!
 addEventListener('hashchange',render);
 $('#foot').textContent='banda ZŁYCH · Warsaw · calendar as of '+fmt(SNAP,{day:'numeric',month:'long',year:'numeric'});
 render();
+
+loadFDR();
 </script>
 
 </body></html>
