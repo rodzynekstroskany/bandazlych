@@ -686,7 +686,6 @@ function personView(w){
    <div class="sec"><div class="sec-head"><h2>Training mix - previous month</h2><span class="hint">${MONTHS[+SNAP.slice(5,7)-2]}</span></div><div class="panel">${discBars(w,+SNAP.slice(5,7)-1)}</div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
   </div>
-  ${recap25(w)}
   <div class="sec"><div class="sec-head"><h2>Consistency</h2></div><div class="panel"><div class="scroll">${heatmap(w)}</div><div style="margin-top:10px">${hmKey}</div></div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2><span class="hint">Apnea sessions by type, plus swim, gym and cardio days on top</span></div><div class="panel scroll">${monthStack(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Personal bests</h2><span class="hint">Flagged as PB in the sheet. Official all-time PBs are not included yet.</span></div>${pbSection(w)}</div>
@@ -695,6 +694,7 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Official results</h2><span class="hint fdr-note"></span></div><div class="panel" data-fdr="res" data-w="${w}"></div></div>
   <div class="sec"><div class="sec-head"><h2>Competitions</h2></div><div class="panel">${resultsHTML(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
+  ${recap25(w)}
   </section>`;
 }
 
