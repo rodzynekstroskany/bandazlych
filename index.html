@@ -446,6 +446,7 @@ const trained=D.sessions.filter(s=>s.a&&s.d<=SNAP);
 const restd=D.sessions.filter(s=>s.r&&s.d<=SNAP);
 const byWho=w=>trained.filter(s=>s.w===w);
 const logOn=(w,d)=>D.sessions.find(s=>s.w===w&&s.d===d);
+const TEAM_OV={'2026-11-15':{k:'banda ZŁYCH warsaw mini comp - STA (Polna) buddy: Piotrek',d:'banda ZŁYCH warsaw mini comp - STA (Polna) buddy: Kasia',p:'banda ZŁYCH mental support and coaching'}};
 const planOn=(w,d)=>D.plans.filter(p=>p.w===w&&p.d===d);
 const evOn=d=>D.events.filter(e=>e.d===d);
 function timeOf(t){const m=t.match(/(?:^|[^\d.:])(\d{1,2})(?:[:.](\d{2}))?\s*[-–]\s*\d/);return m?String(m[1]).padStart(2,'0')+':'+(m[2]||'00'):''}
@@ -612,8 +613,9 @@ function agenda(w,days=7){
     const d=addD(SNAP,i);const evs=evOn(d);
     const items=[];
     (w?[w]:ORDER).forEach(x=>{
-      const pl=planOn(x,d);const lg=logOn(x,d);
-      pl.forEach(p=>{if(!w&&x==='p'&&/DSC recovery/i.test(p.t))return;items.push({w:x,label:planLabel(p),t:p.t,tm:timeOf(p.t)})});
+      let pl=planOn(x,d);const lg=logOn(x,d);
+      if(!w&&TEAM_OV[d]&&TEAM_OV[d][x])pl=[{t:TEAM_OV[d][x],g:x==='p'?[]:['PoolSTA'],lbl:x==='p'?'Support':''}];
+      pl.forEach(p=>{if(!w&&x==='p'&&/DSC/i.test(p.t))return;items.push({w:x,label:p.lbl||planLabel(p),t:p.t,tm:timeOf(p.t)})});
       if(!pl.length&&lg&&lg.a&&d>SNAP)items.push({w:x,label:'Workout drafted',t:(lg.t||'').split('\n')[0],tm:''});
     });
     const tms={};items.forEach(it=>{if(it.tm)(tms[it.tm]=tms[it.tm]||new Set()).add(it.w)});
@@ -661,7 +663,7 @@ function teamView(){
    <div><h1>banda <span>ZŁYCH</span></h1><p>Piotrek, Kasia, Daniel - in training since 28 Oct. 2024<br>Updated ${ord(+D.upd.slice(8,10))} ${MONTHS[+D.upd.slice(5,7)-1]} ${D.upd.slice(0,4)}, ${D.upd.slice(11,16)} CET</p>
    <div class="kpis"><div class="kpi"><b class="num">${total}</b><span>Training sessions</span></div><div class="kpi"><b class="num">${m.gold}</b><span>Gold medals</span></div><div class="kpi"><b class="num">${m.silver}</b><span>Silver medals</span></div><div class="kpi"><b class="num">${RESULTS.length}</b><span>Competitions</span></div></div></div></div>
   <div class="sec">${peopleCards()}</div>
-  <div class="sec"><div class="sec-head"><h2>Next 7 days</h2><span class="hint">Planned sessions from the sheet. Buddy match = same start time.</span></div><div class="panel">${agenda(null,7)}</div></div>
+  <div class="sec"><div class="sec-head"><h2>Next 7 days</h2><span class="hint">Planned sessions from the sheet. Buddy match = same start time.</span></div><div class="panel">${agenda(null,8)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Consistency</h2><span class="hint">Apnea only: static, dynamic, depth. Swim, gym and technique days are left out.</span></div><div class="panel">${ORDER.map(w=>`<div class="hm-row ${w}"><div class="hm-name"><i></i>${PEOPLE[w].name}</div><div class="scroll">${heatmap(w)}</div></div>`).join('')}${hmKey}</div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2>${legend(ORDER)}</div><div class="panel scroll">${monthChart(ORDER)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Training mix - year</h2><span class="hint">All of 2026 so far. Apnea sessions by type, as coloured in the sheet. Swim, Gym and Cardio are counted on top and are not part of consistency.</span></div>
