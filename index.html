@@ -613,7 +613,7 @@ function agenda(w,days=7){
     const items=[];
     (w?[w]:ORDER).forEach(x=>{
       const pl=planOn(x,d);const lg=logOn(x,d);
-      pl.forEach(p=>items.push({w:x,label:planLabel(p),t:p.t,tm:timeOf(p.t)}));
+      pl.forEach(p=>{if(!w&&x==='p'&&/DSC recovery/i.test(p.t))return;items.push({w:x,label:planLabel(p),t:p.t,tm:timeOf(p.t)})});
       if(!pl.length&&lg&&lg.a&&d>SNAP)items.push({w:x,label:'Workout drafted',t:(lg.t||'').split('\n')[0],tm:''});
     });
     const tms={};items.forEach(it=>{if(it.tm)(tms[it.tm]=tms[it.tm]||new Set()).add(it.w)});
