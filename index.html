@@ -700,7 +700,6 @@ function personView(w){
    <div class="kpis"><div class="kpi"><b class="num">${byWho(w).length}</b><span>Sessions 2026</span></div><div class="kpi"><b class="num">${avg}</b><span>Sessions in active month</span></div><div class="kpi"><b class="num">${perWeek(w)}</b><span>Sessions per active week</span></div><div class="kpi"><b class="num">${m.gold+m.silver}</b><span>Medals 2026</span></div><div class="kpi"><b class="num">${m.gold+m.silver+(MEDALS_PRE[w]||0)}</b><span>Medals total</span></div><div class="kpi"><b class="num">${COMPSTARTS[w]}</b><span>Competitions 2026</span></div></div></div></div>
   ${w==='p'?timeOffNote():''}
   ${w!=='k'?titlesHTML(w):''}
-  ${rankSection(w)}
   <div class="sec"><div class="sec-head"><h2>Next 7 days</h2></div><div class="panel">${agenda(w,7)}</div></div>
   <div class="cols">
    <div class="sec"><div class="sec-head"><h2>Highlights</h2></div><div class="panel"><ul class="hl">${HIGH[w].map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div></div>
@@ -718,6 +717,7 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Official results</h2><span class="hint fdr-note"></span></div><div class="panel" data-fdr="res" data-w="${w}"></div></div>
   <div class="sec"><div class="sec-head"><h2>Competitions</h2></div><div class="panel">${resultsHTML(w)}</div></div>
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
+  ${rankSection(w)}
   ${recap25(w)}
   </section>`;
 }
