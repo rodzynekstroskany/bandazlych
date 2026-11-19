@@ -272,7 +272,7 @@ const PEOPLE={
 const ORDER=['p','k','d'];
 const DISC=['PoolSTA','DrySTA','DYN','DeepSpot','OpenWater','Comp'];
 const EXTRA=['Swim','Gym','Cardio'];
-let mSel=+SNAP.slice(5,7);const inM=(d,m)=>!m||+d.slice(5,7)===m;
+let mSel=+SNAP.slice(5,7);const inM=(d,m)=>!m||(Array.isArray(m)?(d>=m[0]&&d<=m[1]):+d.slice(5,7)===m);
 const SHORT={PoolSTA:'STA',DrySTA:'dry STA',DYN:'DYN',DeepSpot:'DeepSpot',OpenWater:'Open water',Comp:'Comp'};
 const DISC_LABEL={PoolSTA:'Pool STA',DrySTA:'Dry STA',DYN:'Dynamic',DeepSpot:'DeepSpot',OpenWater:'Open water',Comp:'Competition',Swim:'Swim',Gym:'Gym',Cardio:'Cardio'};
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -695,6 +695,11 @@ function teamView(){
   <div class="sec"><div class="sec-head"><h2>Coming up</h2></div><div class="panel">${upcomingEvents()}</div></div>
   </section>`;
 }
+const COACHES={p:[],
+ k:['Dean Chaouche - 2 Oct 2023 – 25 Dec 2023 (3 months)','Florian Dagoury - 10 Jan 2026 – 10 Jun 2026 (6 months)'],
+ d:['Philipp Heinzelmann - since 12 Oct 2026 (current coach)']};
+function weekRange(){const dow=(new Date(SNAP+'T00:00:00Z').getUTCDay()+6)%7;return [addD(SNAP,-dow),SNAP]}
+function coachesHTML(w){const L=COACHES[w]||[];return `<div class="sec"><div class="sec-head"><h2>Coaches</h2></div><div class="panel">${L.length?`<ul class="hl">${L.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:'<p class="empty">No coaches added yet.</p>'}</div></div>`}
 function timeOffNote(){const ds=D.plans.filter(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).map(p=>p.d).sort();if(!ds.length||ds[ds.length-1]<SNAP)return '';
   const why=(D.plans.find(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).t.split(':')[1]||'DSC recovery - taking it easy').trim();
   return `<div class="sec"><div class="panel timeoff"><span class="badge">Time off</span><b>${esc(why)}</b><em>${fmt(ds[0],{day:'numeric',month:'short'})} – ${fmt(ds[ds.length-1],{day:'numeric',month:'short'})}</em></div></div>`}
@@ -711,7 +716,8 @@ function personView(w){
    <div class="sec"><div class="sec-head"><h2>Highlights</h2></div><div class="panel"><ul class="hl">${HIGH[w].map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - year</h2></div><div class="panel">${discBars(w)}</div></div>
   </div>
-  <div class="cols">
+  <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))">
+   <div class="sec"><div class="sec-head"><h2>Training mix - week</h2><span class="hint">Mon – today</span></div><div class="panel">${discBars(w,weekRange())}</div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - previous month</h2><span class="hint">${MONTHS[+SNAP.slice(5,7)-2]}</span></div><div class="panel">${discBars(w,+SNAP.slice(5,7)-1)}</div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
   </div>
@@ -725,6 +731,7 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
   ${rankSection(w)}
   ${recap25(w)}
+  ${coachesHTML(w)}
   </section>`;
 }
 
