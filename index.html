@@ -716,10 +716,13 @@ function personView(w){
    <div class="sec"><div class="sec-head"><h2>Highlights</h2></div><div class="panel"><ul class="hl">${HIGH[w].map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - year</h2></div><div class="panel">${discBars(w)}</div></div>
   </div>
-  <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))">
-   <div class="sec"><div class="sec-head"><h2>Training mix - week</h2><span class="hint">Mon – today</span></div><div class="panel">${discBars(w,weekRange())}</div></div>
+  <div class="cols">
    <div class="sec"><div class="sec-head"><h2>Training mix - previous month</h2><span class="hint">${MONTHS[+SNAP.slice(5,7)-2]}</span></div><div class="panel">${discBars(w,+SNAP.slice(5,7)-1)}</div></div>
    <div class="sec"><div class="sec-head"><h2>Training mix - month</h2>${monthSel()}</div><div class="panel" id="mixm">${discBars(w,mSel)}</div></div>
+  </div>
+  <div class="cols">
+   <div class="sec"><div class="sec-head"><h2>Training mix - week</h2><span class="hint">Mon – today</span></div><div class="panel">${discBars(w,weekRange())}</div></div>
+   ${coachesHTML(w)}
   </div>
   <div class="sec"><div class="sec-head"><h2>Consistency</h2></div><div class="panel"><div class="scroll">${heatmap(w)}</div><div style="margin-top:10px">${hmKey}</div></div></div>
   <div class="sec"><div class="sec-head"><h2>Sessions per month</h2><span class="hint">Apnea sessions by type, plus swim, gym and cardio days on top</span></div><div class="panel scroll">${monthStack(w)}</div></div>
@@ -731,7 +734,6 @@ function personView(w){
   <div class="sec"><div class="sec-head"><h2>Recent sessions</h2><span class="hint">Tap a row to read the full log</span></div><div class="panel">${sessionsHTML(w)}</div></div>
   ${rankSection(w)}
   ${recap25(w)}
-  ${coachesHTML(w)}
   </section>`;
 }
 
