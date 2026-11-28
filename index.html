@@ -651,11 +651,11 @@ function agenda(w,days=7){
 }
 function upcomingEvents(){
   /* next 3 months: sheet events + 2027 list, consecutive days merged */
-  const lim=addD(SNAP,92),g=[];
-  D.events.filter(e=>e.d>SNAP&&e.d<=lim).forEach(e=>{const n=e.t.replace(/^(Zawody|COMPETITION):\s*/,'').replace(/^\S+ ZŁYCH\s*/,'banda ZŁYCH ');const l=g[g.length-1];if(l&&l.n===n&&addD(l.b,1)===e.d)l.b=e.d;else g.push({a:e.d,b:e.d,n})});
-  [['2027-01-15','2027-01-15','DeepSpot Liga'],['2027-01-30','2027-01-31','Suunto Games, Wrocław'],['2027-02-18','2027-02-20','DeepSpot Challenge'],['2027-03-12','2027-03-14','CMAS World Cup / Polish Nationals']].forEach(x=>{if(x[0]>SNAP&&x[0]<=lim)g.push({a:x[0],b:x[1],n:x[2]})});
-  g.sort((p,q)=>p.a<q.a?-1:1);
-  if(!g.length)return '<p class="empty">Nothing planned in the next 3 months.</p>';
+  const g=[];
+  D.events.filter(e=>e.d>SNAP).forEach(e=>{const n=e.t.replace(/^(Zawody|COMPETITION):\s*/,'').replace(/^\S+ ZŁYCH\s*/,'banda ZŁYCH ');const l=g[g.length-1];if(l&&l.n===n&&addD(l.b,1)===e.d)l.b=e.d;else g.push({a:e.d,b:e.d,n})});
+  [['2027-01-15','2027-01-15','DeepSpot Liga'],['2027-01-30','2027-01-31','Suunto Games, Wrocław'],['2027-02-18','2027-02-20','DeepSpot Challenge'],['2027-03-12','2027-03-14','CMAS World Cup / Polish Nationals'],['2027-04-10','2027-04-11','CMAS Quest - Polna pool 25m']].forEach(x=>{if(x[0]>SNAP)g.push({a:x[0],b:x[1],n:x[2]})});
+  g.sort((p,q)=>p.a<q.a?-1:1);g.splice(6);
+  if(!g.length)return '<p class="empty">Nothing planned yet.</p>';
   const dr=x=>x.a===x.b?fmt(x.a):(x.a.slice(0,7)===x.b.slice(0,7)?fmt(x.a,{day:'numeric'}):fmt(x.a,{day:'numeric',month:'short'}))+' – '+fmt(x.b,{day:'numeric',month:'short'});
   return `<div class="agenda">${g.map(x=>`<div class="arow"><div class="adate">${dr(x)}<small>${fmt(x.a,{weekday:'short'})}</small></div><div class="aitems"><div class="aline"><span>${esc(x.n)}</span></div></div></div>`).join('')}</div>`;
 }
@@ -707,6 +707,9 @@ const COACHES={p:[],
  d:['Philipp Heinzelmann - since 12 Oct 2026 (current coach)']};
 function weekRange(){const dow=(new Date(SNAP+'T00:00:00Z').getUTCDay()+6)%7;return [addD(SNAP,-dow),SNAP]}
 function coachesHTML(w){const L=COACHES[w]||[];return `<div class="sec"><div class="sec-head"><h2>Coaches</h2></div><div class="panel">${L.length?`<ul class="hl">${L.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:'<p class="empty">No coaches added yet.</p>'}</div></div>`}
+const AWAY_K={a:'2027-01-04',b:'2027-02-01',t:'Gone surfing'};
+function awayNote(){if(AWAY_K.b<SNAP)return '';
+  return `<div class="sec"><div class="panel timeoff"><span class="badge">Away</span><b>${esc(AWAY_K.t)}</b><em>${fmt(AWAY_K.a,{day:'2-digit',month:'short'})} – ${fmt(AWAY_K.b,{day:'2-digit',month:'short'})}</em></div></div>`}
 function timeOffNote(){const ds=D.plans.filter(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).map(p=>p.d).sort();if(!ds.length||ds[ds.length-1]<SNAP)return '';
   const why=(D.plans.find(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).t.split(':')[1]||'DSC recovery - taking it easy').trim();
   return `<div class="sec"><div class="panel timeoff"><span class="badge">Time off</span><b>${esc(why)}</b><em>${fmt(ds[0],{day:'numeric',month:'short'})} – ${fmt(ds[ds.length-1],{day:'numeric',month:'short'})}</em></div></div>`}
@@ -716,7 +719,7 @@ function personView(w){
   return `<section class="view ${w}" id="v-${P.name.toLowerCase()}">
   <div class="phero"><img src="${P.img}" alt="${P.name}"><div><h1>${P.name}</h1><div class="full">${P.full} · banda ZŁYCH</div>
    <div class="kpis"><div class="kpi"><b class="num">${byWho(w).length}</b><span>Sessions 2026</span></div><div class="kpi"><b class="num">${avg}</b><span>Sessions in active month</span></div><div class="kpi"><b class="num">${perWeek(w)}</b><span>Sessions per active week</span></div><div class="kpi"><b class="num">${m.gold+m.silver}</b><span>Medals 2026</span></div><div class="kpi"><b class="num">${m.gold+m.silver+(MEDALS_PRE[w]||0)}</b><span>Medals total</span></div><div class="kpi"><b class="num">${COMPSTARTS[w]}</b><span>Competitions 2026</span></div></div></div></div>
-  ${w==='p'?timeOffNote():''}
+  ${w==='p'?timeOffNote():w==='k'?awayNote():''}
   ${w!=='k'?titlesHTML(w):''}
   <div class="sec"><div class="sec-head"><h2>Next 7 days</h2></div><div class="panel">${agenda(w,7)}</div></div>
   <div class="cols">
