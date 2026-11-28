@@ -106,6 +106,8 @@ section.view{display:flex;flex-direction:column;gap:36px}
 /* panels */
 .timeoff{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;border-color:rgba(212,160,44,.55);background:linear-gradient(135deg,rgba(212,160,44,.16),rgba(212,160,44,.04))}
 .timeoff .badge{font:700 11px/1 var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:#fff;background:#8a6a1a;border:1px solid #d4a02c;border-radius:99px;padding:5px 10px}
+.timeoff.away{border-color:rgba(229,56,59,.6);background:linear-gradient(135deg,rgba(229,56,59,.18),rgba(229,56,59,.04))}
+.timeoff.away .badge{background:#9e2427;border-color:#e5383b}
 .timeoff b{font-weight:600;color:#fff}.timeoff em{font-style:normal;color:#fff;opacity:.8;margin-left:auto}
 .panel{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px;min-width:0}
 .scroll{overflow-x:auto;padding-bottom:4px}
@@ -709,7 +711,7 @@ function weekRange(){const dow=(new Date(SNAP+'T00:00:00Z').getUTCDay()+6)%7;ret
 function coachesHTML(w){const L=COACHES[w]||[];return `<div class="sec"><div class="sec-head"><h2>Coaches</h2></div><div class="panel">${L.length?`<ul class="hl">${L.map(h=>`<li>${esc(h)}</li>`).join('')}</ul>`:'<p class="empty">No coaches added yet.</p>'}</div></div>`}
 const AWAY_K={a:'2027-01-04',b:'2027-02-01',t:'Gone surfing'};
 function awayNote(){if(AWAY_K.b<SNAP)return '';
-  return `<div class="sec"><div class="panel timeoff"><span class="badge">Away</span><b>${esc(AWAY_K.t)}</b><em>${fmt(AWAY_K.a,{day:'2-digit',month:'short'})} – ${fmt(AWAY_K.b,{day:'2-digit',month:'short'})}</em></div></div>`}
+  return `<div class="sec"><div class="panel timeoff away"><span class="badge">Away</span><b>${esc(AWAY_K.t)}</b><em>${fmt(AWAY_K.a,{day:'2-digit',month:'short'})} – ${fmt(AWAY_K.b,{day:'2-digit',month:'short'})}</em></div></div>`}
 function timeOffNote(){const ds=D.plans.filter(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).map(p=>p.d).sort();if(!ds.length||ds[ds.length-1]<SNAP)return '';
   const why=(D.plans.find(p=>p.w==='p'&&/TIME OFF/i.test(p.t)).t.split(':')[1]||'DSC recovery - taking it easy').trim();
   return `<div class="sec"><div class="panel timeoff"><span class="badge">Time off</span><b>${esc(why)}</b><em>${fmt(ds[0],{day:'numeric',month:'short'})} – ${fmt(ds[ds.length-1],{day:'numeric',month:'short'})}</em></div></div>`}
